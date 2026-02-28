@@ -96,9 +96,9 @@ make install
 ```bash
 # 后端
 cd backend
-python3 -m venv .venv
+uv venv
 source .venv/bin/activate
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # 前端
 cd frontend
