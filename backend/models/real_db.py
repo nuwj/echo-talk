@@ -40,6 +40,15 @@ class RealDatabase:
             user = session.get(UserModel, user_id)
             return user.to_dict() if user else None
 
+    def update_password_hash(self, user_id: str, password_hash: str) -> bool:
+        with SessionLocal() as session:
+            user = session.get(UserModel, user_id)
+            if user:
+                user.password_hash = password_hash
+                session.commit()
+                return True
+            return False
+
     # --- Session operations ---
 
     def create_session(self, user_id: str, mode: str) -> dict:

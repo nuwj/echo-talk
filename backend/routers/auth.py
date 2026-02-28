@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from dependencies import create_access_token, hash_password, verify_password, get_current_user
 from fastapi import Depends
 from models.mock_db import db
-from schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserResponse, ChangePasswordRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -49,3 +49,18 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     return UserResponse(
         **{k: current_user[k] for k in ("id", "email", "name", "created_at")}
     )
+
+
+@router.put("/password")
+async def change_password(
+    req: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    if not verify_password(req.current_password, current_user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    new_hash = hash_password(req.new_password)
+    db.update_password_hash(current_user["id"], new_hash)
+    return {"message": "Password updated"}

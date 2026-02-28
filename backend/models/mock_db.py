@@ -41,6 +41,13 @@ class MockDatabase:
     def get_user_by_id(self, user_id: str) -> Optional[dict]:
         return self.users.get(user_id)
 
+    def update_password_hash(self, user_id: str, password_hash: str) -> bool:
+        user = self.users.get(user_id)
+        if user:
+            user["password_hash"] = password_hash
+            return True
+        return False
+
     # --- Session operations ---
     def create_session(self, user_id: str, mode: str) -> dict:
         session_id = str(uuid.uuid4())

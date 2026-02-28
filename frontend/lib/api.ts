@@ -80,3 +80,13 @@ export async function getWeeklyReport(): Promise<WeeklyReport> {
   const res = await api.get<WeeklyReport>("/reports/weekly");
   return res.data;
 }
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  await api.put("/auth/password", {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+}

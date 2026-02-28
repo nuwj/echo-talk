@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/lib/store";
-import { Sun, Moon, User } from "lucide-react";
+import { changePassword } from "@/lib/api";
+import { Sun, Moon, User, Lock } from "lucide-react";
 
 export default function SettingsPage() {
   const user = useAuthStore((s) => s.user);
   const [darkMode, setDarkMode] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(20);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwdMessage, setPwdMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [pwdLoading, setPwdLoading] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("echotalk-dark-mode");
@@ -35,6 +46,36 @@ export default function SettingsPage() {
     localStorage.setItem("echotalk-daily-goal", String(value));
   };
 
+  const handleChangePassword = async () => {
+    setPwdMessage(null);
+    if (newPassword !== confirmPassword) {
+      setPwdMessage({ type: "error", text: "New passwords do not match" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwdMessage({
+        type: "error",
+        text: "New password must be at least 6 characters",
+      });
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setPwdMessage({ type: "success", text: "Password updated successfully" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail || "Failed to change password";
+      setPwdMessage({ type: "error", text: msg });
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto p-6 space-y-6 max-w-2xl">
       <h2 className="text-lg font-semibold text-[var(--foreground)]">
@@ -56,6 +97,62 @@ export default function SettingsPage() {
               {user?.email}
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Security */}
+      <section className="border border-[var(--border)] rounded-lg p-5 bg-[var(--card)] space-y-4">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+          Security
+        </h3>
+        <div className="flex items-center gap-3 mb-2">
+          <Lock className="h-5 w-5 text-[var(--muted-foreground)]" />
+          <p className="text-sm font-medium text-[var(--foreground)]">
+            Change Password
+          </p>
+        </div>
+        <div className="space-y-3 max-w-sm">
+          <input
+            type="password"
+            placeholder="Current password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-md border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          />
+          <input
+            type="password"
+            placeholder="New password (min 6 characters)"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-md border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          />
+          <input
+            type="password"
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-md border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          />
+          {pwdMessage && (
+            <p
+              className={`text-sm ${
+                pwdMessage.type === "success"
+                  ? "text-green-600"
+                  : "text-red-500"
+              }`}
+            >
+              {pwdMessage.text}
+            </p>
+          )}
+          <button
+            onClick={handleChangePassword}
+            disabled={
+              pwdLoading || !currentPassword || !newPassword || !confirmPassword
+            }
+            className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pwdLoading ? "Updating..." : "Update Password"}
+          </button>
         </div>
       </section>
 
