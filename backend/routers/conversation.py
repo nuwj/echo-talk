@@ -6,8 +6,8 @@ from config import settings
 from dependencies import get_current_user
 from models.mock_db import db
 from schemas.conversation import ChatRequest, ChatResponse
-from services.llm_service import BaseLLMService, MockLLMService, ENGLISH_COACH_PROMPT
-from services.tts_service import BaseTTSService, MockTTSService
+from services.llm_service import BaseLLMService, MockLLMService, RealLLMService, ENGLISH_COACH_PROMPT
+from services.tts_service import BaseTTSService, MockTTSService, RealTTSService
 
 router = APIRouter(prefix="/conversation", tags=["conversation"])
 
@@ -15,15 +15,17 @@ router = APIRouter(prefix="/conversation", tags=["conversation"])
 def get_llm_service() -> BaseLLMService:
     if settings.USE_MOCK_LLM:
         return MockLLMService()
-    # TODO: return RealLLMService(...)
-    return MockLLMService()
+    return RealLLMService(
+        api_key=settings.SILICONFLOW_API_KEY,
+        provider=settings.DEFAULT_LLM_PROVIDER,
+        model=settings.DEFAULT_LLM_MODEL,
+    )
 
 
 def get_tts_service() -> BaseTTSService:
     if settings.USE_MOCK_TTS:
         return MockTTSService()
-    # TODO: return RealTTSService(...)
-    return MockTTSService()
+    return RealTTSService(api_key=settings.CARTESIA_API_KEY)
 
 
 @router.post("/chat", response_model=ChatResponse)

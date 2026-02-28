@@ -6,3 +6,12 @@ pydantic[email]==2.10.0
 pydantic-settings==2.7.0
 python-multipart==0.0.18
 httpx==0.28.0
+openai>=1.40.0
+deepgram-sdk>=3.5.0
+livekit-api>=0.7.0
+celery[redis]>=5.4.0
+redis>=5.0.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0
+pronouncing>=0.2.0

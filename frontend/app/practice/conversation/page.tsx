@@ -6,6 +6,7 @@ import { AvatarDisplay } from "@/components/conversation/AvatarDisplay";
 import { TranscriptPanel } from "@/components/conversation/TranscriptPanel";
 import { VoiceInterface } from "@/components/conversation/VoiceInterface";
 import { ConversationControls } from "@/components/conversation/ConversationControls";
+import PronunciationFeedback from "@/components/pronunciation/PronunciationFeedback";
 import type { AvatarStatus } from "@/lib/types";
 
 export default function ConversationPage() {
@@ -21,11 +22,12 @@ export default function ConversationPage() {
   } = useConversationStore();
 
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [endedSessionId, setEndedSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Start a new session when page loads
     startSession();
     setSessionEnded(false);
+    setEndedSessionId(null);
     return () => {
       reset();
     };
@@ -33,17 +35,19 @@ export default function ConversationPage() {
   }, []);
 
   const handleEndSession = async () => {
+    const currentId = sessionId;
     await endSession();
     setSessionEnded(true);
+    setEndedSessionId(currentId);
   };
 
   const handleNewSession = () => {
     reset();
     startSession();
     setSessionEnded(false);
+    setEndedSessionId(null);
   };
 
-  // Map conversation status to avatar status
   const getAvatarStatus = (): AvatarStatus => {
     if (status === "processing") return "thinking";
     if (status === "playing") return "speaking";
@@ -70,18 +74,25 @@ export default function ConversationPage() {
         </div>
       </div>
 
-      {/* Session ended overlay */}
+      {/* Session ended: show assessment results */}
       {sessionEnded ? (
-        <div className="border-t border-[var(--border)] bg-[var(--card)] p-4 text-center">
-          <p className="text-sm text-[var(--muted-foreground)] mb-3">
-            Session ended. Great practice!
-          </p>
-          <button
-            onClick={handleNewSession}
-            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md text-sm hover:opacity-90 transition-opacity"
-          >
-            Start New Session
-          </button>
+        <div className="border-t border-[var(--border)] bg-[var(--card)] p-5 overflow-y-auto max-h-64">
+          <div className="max-w-2xl mx-auto space-y-4">
+            <h3 className="text-sm font-semibold text-[var(--foreground)]">
+              Session Review
+            </h3>
+            {endedSessionId && (
+              <PronunciationFeedback sessionId={endedSessionId} />
+            )}
+            <div className="pt-2">
+              <button
+                onClick={handleNewSession}
+                className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md text-sm hover:opacity-90 transition-opacity"
+              >
+                Start New Session
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <VoiceInterface

@@ -3,6 +3,8 @@
 import asyncio
 from abc import ABC, abstractmethod
 
+from deepgram import DeepgramClient, PrerecordedOptions
+
 
 class BaseSTTService(ABC):
     @abstractmethod
@@ -28,10 +30,23 @@ class MockSTTService(BaseSTTService):
 
 
 class RealSTTService(BaseSTTService):
-    """Deepgram Flux STT. Wire up when ready."""
+    """Deepgram Nova-2 STT."""
 
     def __init__(self, api_key: str):
-        self.api_key = api_key
+        self.client = DeepgramClient(api_key)
 
     async def transcribe(self, audio_bytes: bytes, language: str = "en") -> str:
-        raise NotImplementedError("Real STT service not yet configured")
+        options = PrerecordedOptions(
+            model="nova-2",
+            language=language,
+            smart_format=True,
+        )
+        response = await asyncio.to_thread(
+            self.client.listen.rest.v("1").transcribe_file,
+            {"buffer": audio_bytes},
+            options,
+        )
+        transcript = (
+            response.results.channels[0].alternatives[0].transcript
+        )
+        return transcript or ""

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from routers import auth, sessions, conversation
-from routers import assessment
+from routers import assessment, reports
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")
 app.include_router(conversation.router, prefix="/api")
 app.include_router(assessment.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 
 
 @app.get("/api/health")

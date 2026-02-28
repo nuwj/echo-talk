@@ -197,5 +197,11 @@ class MockDatabase:
         return record
 
 
-# Singleton instance
-db = MockDatabase()
+# Conditional singleton: use MockDatabase in dev, RealDatabase in production
+from config import settings
+
+if settings.USE_MOCK_DB:
+    db = MockDatabase()
+else:
+    from models.real_db import RealDatabase
+    db = RealDatabase()

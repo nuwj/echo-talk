@@ -65,3 +65,18 @@ export async function getSkills(): Promise<Skill[]> {
   const res = await api.get<Skill[]>("/assessments/knowledge/skills");
   return res.data;
 }
+
+export interface WeeklyReport {
+  user_id: string;
+  period_start: string;
+  period_end: string;
+  sessions_completed: number;
+  total_conversation_turns: number;
+  weak_skills: { skill_id: string; skill_name: string; p_mastery: number }[];
+  generated_at: string;
+}
+
+export async function getWeeklyReport(): Promise<WeeklyReport> {
+  const res = await api.get<WeeklyReport>("/reports/weekly");
+  return res.data;
+}

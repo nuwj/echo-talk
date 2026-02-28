@@ -4,6 +4,8 @@ import asyncio
 import random
 from abc import ABC, abstractmethod
 
+from openai import AsyncOpenAI
+
 
 ENGLISH_COACH_PROMPT = """You are a friendly and patient AI English speaking coach.
 Your role is to:
@@ -20,6 +22,11 @@ Do NOT:
 - Be condescending
 - Switch to any language other than English unless the learner is completely stuck
 """
+
+LLM_PROVIDERS = {
+    "siliconflow": "https://api.siliconflow.cn/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+}
 
 
 class BaseLLMService(ABC):
@@ -47,23 +54,22 @@ class MockLLMService(BaseLLMService):
 
 
 class RealLLMService(BaseLLMService):
-    """OpenRouter / SiliconFlow via OpenAI-compatible SDK. Wire up when ready."""
+    """OpenRouter / SiliconFlow via OpenAI-compatible SDK."""
 
-    def __init__(self, api_key: str, base_url: str, model: str):
-        self.api_key = api_key
-        self.base_url = base_url
+    def __init__(self, api_key: str, provider: str, model: str):
+        base_url = LLM_PROVIDERS.get(provider, provider)
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.model = model
 
     async def chat(self, messages: list[dict], system_prompt: str = "") -> str:
-        # TODO: Implement with openai SDK
-        # from openai import AsyncOpenAI
-        # client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-        # full_messages = []
-        # if system_prompt:
-        #     full_messages.append({"role": "system", "content": system_prompt})
-        # full_messages.extend(messages)
-        # response = await client.chat.completions.create(
-        #     model=self.model, messages=full_messages
-        # )
-        # return response.choices[0].message.content
-        raise NotImplementedError("Real LLM service not yet configured")
+        full_messages: list[dict] = []
+        if system_prompt:
+            full_messages.append({"role": "system", "content": system_prompt})
+        full_messages.extend(messages)
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=full_messages,
+            max_tokens=256,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content or ""
