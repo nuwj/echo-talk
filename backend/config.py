@@ -1,0 +1,43 @@
+from pydantic_settings import BaseSettings
+from typing import List
+
+
+class Settings(BaseSettings):
+    # Mock flags
+    USE_MOCK_LLM: bool = True
+    USE_MOCK_TTS: bool = True
+    USE_MOCK_STT: bool = True
+    USE_MOCK_LIVEKIT: bool = True
+    USE_MOCK_CELERY: bool = True  # Phase 2: run tasks synchronously without Redis
+    USE_MOCK_ELSA: bool = True    # Phase 2: mock ELSA pronunciation API
+
+    # JWT
+    JWT_SECRET_KEY: str = "dev-secret-key-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_HOURS: int = 24
+
+    # LLM
+    OPENROUTER_API_KEY: str = ""
+    SILICONFLOW_API_KEY: str = ""
+    DEFAULT_LLM_PROVIDER: str = "openrouter"
+
+    # Voice services
+    DEEPGRAM_API_KEY: str = ""
+    CARTESIA_API_KEY: str = ""
+
+    # LiveKit
+    LIVEKIT_URL: str = ""
+    LIVEKIT_API_KEY: str = ""
+    LIVEKIT_API_SECRET: str = ""
+
+    # Phase 2
+    REDIS_URL: str = "redis://localhost:6379/0"
+    ELSA_API_KEY: str = ""
+
+    # CORS
+    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+
+settings = Settings()
